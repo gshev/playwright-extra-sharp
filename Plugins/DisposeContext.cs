@@ -6,5 +6,5 @@ public class DisposeContext : PlaywrightExtraPlugin
 {
     public override string Name => "dispose-context";
 
-    public override Func<IPage, Task> OnPageClose => async page => { await page.Context.DisposeAsync(); };
+    public override Func<IPage, Task> OnPageClose => page => page.Context.DisposeAsync().AsTask();
 }

@@ -28,7 +28,7 @@ public class Recaptcha
                 throw new InvalidOperationException();
             await WriteToInput(page, solution!);
 
-            return new RecaptchaResult(true);
+            return new RecaptchaResult();
         }
         catch (CaptchaException ex)
         {

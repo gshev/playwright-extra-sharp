@@ -6,5 +6,5 @@ public class Permissions : PlaywrightExtraPlugin
 {
     public override string Name => "stealth-permissions";
 
-    public override Func<IPage, Task> OnPageCreated => async page => { await EvaluateScript(page, "Permissions.js"); };
+    public override Func<IPage, Task> OnPageCreated => page => EvaluateScript(page, "Permissions.js");
 }

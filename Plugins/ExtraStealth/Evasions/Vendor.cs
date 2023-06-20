@@ -13,10 +13,7 @@ public class Vendor : PlaywrightExtraPlugin
 
     public override string Name => "stealth-vendor";
 
-    public override Func<IPage, Task> OnPageCreated => async page =>
-    {
-        await EvaluateScript(page, "Vendor.js", _settings.Vendor);
-    };
+    public override Func<IPage, Task> OnPageCreated => page => EvaluateScript(page, "Vendor.js", _settings.Vendor);
 }
 
 public class StealthVendorSettings : IPlaywrightExtraPluginOptions

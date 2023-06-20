@@ -6,7 +6,7 @@ public class WebDriver : PlaywrightExtraPlugin
 {
     public override string Name => "stealth-webDriver";
 
-    public override Func<IPage, Task> OnPageCreated => async page => { await EvaluateScript(page, "WebDriver.js"); };
+    public override Func<IPage, Task> OnPageCreated => page => EvaluateScript(page, "WebDriver.js");
 
     public override Func<BrowserTypeLaunchOptions?, Task> BeforeLaunch =>
         options =>

@@ -12,6 +12,5 @@ public class ContentWindow : PlaywrightExtraPlugin
         PluginRequirement.RunLast
     };
 
-    public override Func<IPage, Task> OnPageCreated =>
-        async page => { await EvaluateScript(page, "ContentWindow.js"); };
+    public override Func<IPage, Task> OnPageCreated => page => EvaluateScript(page, "ContentWindow.js");
 }

@@ -13,10 +13,7 @@ public class Languages : PlaywrightExtraPlugin
 
     public override string Name => "stealth-language";
 
-    public override Func<IPage, Task> OnPageCreated => async page =>
-    {
-        await EvaluateScript(page, "Language.js", _options.Languages);
-    };
+    public override Func<IPage, Task> OnPageCreated => page => EvaluateScript(page, "Language.js", _options.Languages);
 }
 
 public class StealthLanguagesOptions : IPlaywrightExtraPluginOptions

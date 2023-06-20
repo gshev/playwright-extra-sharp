@@ -6,5 +6,5 @@ public class LoadTimes : PlaywrightExtraPlugin
 {
     public override string Name => "stealth-loadTimes";
 
-    public override Func<IPage, Task> OnPageCreated => async page => { await EvaluateScript(page, "LoadTimes.js"); };
+    public override Func<IPage, Task> OnPageCreated => page => EvaluateScript(page, "LoadTimes.js");
 }

@@ -9,5 +9,5 @@ public class ChromeApp : PlaywrightExtraPlugin
 {
     public override string Name => "stealth-chromeApp";
 
-    public override Func<IPage, Task> OnPageCreated => async page => { await EvaluateScript(page, "ChromeApp.js"); };
+    public override Func<IPage, Task> OnPageCreated => page => EvaluateScript(page, "ChromeApp.js");
 }

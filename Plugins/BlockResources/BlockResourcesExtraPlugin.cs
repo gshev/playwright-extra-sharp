@@ -14,11 +14,23 @@ public class BlockResourcesExtraPlugin : PlaywrightExtraPlugin
 
     public override string Name => "block-resources";
 
-    public override Func<IPage, Task> OnPageCreated => page =>
-    {
-        page.Request += (_, request) => OnPageRequest(page, request);
-        return Task.CompletedTask;
-    };
+    public override Func<IPage, IRequest, Task> OnRequest =>
+        (page, request) =>
+        {
+            var tcs = new TaskCompletionSource<bool>();
+
+            page.RouteAsync("**/*", async route =>
+            {
+                if (_blockResources.Any(rule => rule.IsRequestBlocked(page, request)))
+                    await route.AbortAsync();
+                else
+                    await route.ContinueAsync();
+
+                tcs.SetResult(true);
+            });
+
+            return tcs.Task;
+        };
 
     public override Func<BrowserTypeLaunchOptions?, Task> BeforeLaunch => options =>
     {
@@ -28,14 +40,22 @@ public class BlockResourcesExtraPlugin : PlaywrightExtraPlugin
         return Task.CompletedTask;
     };
 
-    private async void OnPageRequest(IPage sender, IRequest request)
+    private async Task OnPageRequest(object sender, IRequest request, TaskCompletionSource<bool> tcs)
     {
-        await sender.RouteAsync("**/*", async route =>
+        if (sender is not IPage senderPage)
         {
-            if (_blockResources.Any(rule => rule.IsRequestBlocked(sender, request)))
+            tcs.SetResult(true);
+            return;
+        }
+
+        await senderPage.RouteAsync("**/*", async route =>
+        {
+            if (_blockResources.Any(rule => rule.IsRequestBlocked(senderPage, request)))
                 await route.AbortAsync();
             else
                 await route.ContinueAsync();
+
+            tcs.SetResult(true);
         });
     }
 }

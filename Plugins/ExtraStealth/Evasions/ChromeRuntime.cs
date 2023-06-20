@@ -6,5 +6,5 @@ public class ChromeRuntime : PlaywrightExtraPlugin
 {
     public override string Name => "stealth-runtime";
 
-    public override Func<IPage, Task> OnPageCreated => async page => { await EvaluateScript(page, "Runtime.js"); };
+    public override Func<IPage, Task> OnPageCreated => page => EvaluateScript(page, "Runtime.js");
 }

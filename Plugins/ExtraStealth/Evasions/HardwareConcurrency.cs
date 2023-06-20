@@ -13,10 +13,8 @@ public class HardwareConcurrency : PlaywrightExtraPlugin
 
     public override string Name => "stealth/hardwareConcurrency";
 
-    public override Func<IPage, Task> OnPageCreated => async page =>
-    {
-        await EvaluateScript(page, "HardwareConcurrency.js", _options.Concurrency);
-    };
+    public override Func<IPage, Task> OnPageCreated =>
+        page => EvaluateScript(page, "HardwareConcurrency.js", _options.Concurrency);
 }
 
 public class StealthHardwareConcurrencyOptions : IPlaywrightExtraPluginOptions

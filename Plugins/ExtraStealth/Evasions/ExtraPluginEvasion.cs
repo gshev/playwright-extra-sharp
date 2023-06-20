@@ -6,5 +6,5 @@ public class ExtraPluginEvasion : PlaywrightExtraPlugin
 {
     public override string Name => "stealth-pluginEvasion";
 
-    public override Func<IPage, Task> OnPageCreated => async page => { await EvaluateScript(page, "Plugin.js"); };
+    public override Func<IPage, Task> OnPageCreated => page => EvaluateScript(page, "Plugin.js");
 }

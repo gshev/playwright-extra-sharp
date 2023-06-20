@@ -19,100 +19,6 @@ public class PlaywrightExtra : IBrowser, IDisposable
         Use(new DisposeContext());
     }
 
-    public async Task<IPage> NewPageAsync(BrowserNewPageOptions? options = default)
-    {
-        options ??= new BrowserNewPageOptions();
-
-        var contextOptions = new BrowserNewContextOptions
-        {
-            AcceptDownloads = options.AcceptDownloads,
-            IgnoreHTTPSErrors = options.IgnoreHTTPSErrors,
-            BypassCSP = options.BypassCSP,
-            ViewportSize = options.ViewportSize,
-            ScreenSize = options.ScreenSize,
-            UserAgent = options.UserAgent,
-            DeviceScaleFactor = options.DeviceScaleFactor,
-            IsMobile = options.IsMobile,
-            HasTouch = options.HasTouch,
-            JavaScriptEnabled = options.JavaScriptEnabled,
-            TimezoneId = options.TimezoneId,
-            Geolocation = options.Geolocation,
-            Locale = options.Locale,
-            Permissions = options.Permissions,
-            ExtraHTTPHeaders = options.ExtraHTTPHeaders,
-            Offline = options.Offline,
-            HttpCredentials = options.HttpCredentials,
-            ColorScheme = options.ColorScheme,
-            ReducedMotion = options.ReducedMotion,
-            ForcedColors = options.ForcedColors,
-            RecordHarPath = options.RecordHarPath,
-            RecordHarContent = options.RecordHarContent,
-            RecordHarMode = options.RecordHarMode,
-            RecordHarOmitContent = options.RecordHarOmitContent,
-            RecordHarUrlFilter = options.RecordHarUrlFilter,
-            RecordHarUrlFilterString = options.RecordHarUrlFilterString,
-            RecordHarUrlFilterRegex = options.RecordHarUrlFilterRegex,
-            RecordVideoDir = options.RecordVideoDir,
-            RecordVideoSize = options.RecordVideoSize,
-            Proxy = options.Proxy,
-            StorageState = options.StorageState,
-            StorageStatePath = options.StorageStatePath,
-            ServiceWorkers = options.ServiceWorkers,
-            BaseURL = options.BaseURL,
-            StrictSelectors = options.StrictSelectors
-        };
-
-        await TriggerEventAndWait(x => x.BeforeContext(contextOptions, _browser));
-        var browserContext = await _browser.NewContextAsync(contextOptions).ConfigureAwait(false);
-        await TriggerEventAndWait(x => x.OnContextCreated(browserContext, contextOptions));
-
-        browserContext.Close += async (_, context) => await TriggerEventAndWait(x => x.OnDisconnected(context.Browser));
-
-        var page = await browserContext.NewPageAsync();
-        await TriggerEventAndWait(x => x.OnPageCreated(page));
-
-        page.Close += async (_, page1) => await TriggerEventAndWait(x => x.OnPageClose(page1));
-
-        return page;
-    }
-
-    public ValueTask DisposeAsync()
-    {
-        return _browser.DisposeAsync();
-    }
-
-    public Task CloseAsync()
-    {
-        return _browser.CloseAsync();
-    }
-
-    public Task<ICDPSession> NewBrowserCDPSessionAsync()
-    {
-        return _browser.NewBrowserCDPSessionAsync();
-    }
-
-    public Task<IBrowserContext> NewContextAsync(BrowserNewContextOptions? options = null)
-    {
-        return _browser.NewContextAsync();
-    }
-
-    public IBrowserType BrowserType => _browser.BrowserType;
-    public IReadOnlyList<IBrowserContext> Contexts => _browser.Contexts;
-    public bool IsConnected => _browser.IsConnected;
-    public string Version => _browser.Version;
-
-    event EventHandler<IBrowser>? IBrowser.Disconnected
-    {
-        add => _browser.Disconnected += value;
-        remove => _browser.Disconnected -= value;
-    }
-
-    public async void Dispose()
-    {
-        await _browser.DisposeAsync();
-        _playwright?.Dispose();
-    }
-
     public PlaywrightExtra Use(PlaywrightExtraPlugin extraPlugin)
     {
         _plugins.Add(extraPlugin);
@@ -177,6 +83,101 @@ public class PlaywrightExtra : IBrowser, IDisposable
         });
 
         return this;
+    }
+
+    public async Task<IPage> NewPageAsync(BrowserNewPageOptions? options = default)
+    {
+        options ??= new BrowserNewPageOptions();
+
+        var contextOptions = new BrowserNewContextOptions
+        {
+            AcceptDownloads = options.AcceptDownloads,
+            IgnoreHTTPSErrors = options.IgnoreHTTPSErrors,
+            BypassCSP = options.BypassCSP,
+            ViewportSize = options.ViewportSize,
+            ScreenSize = options.ScreenSize,
+            UserAgent = options.UserAgent,
+            DeviceScaleFactor = options.DeviceScaleFactor,
+            IsMobile = options.IsMobile,
+            HasTouch = options.HasTouch,
+            JavaScriptEnabled = options.JavaScriptEnabled,
+            TimezoneId = options.TimezoneId,
+            Geolocation = options.Geolocation,
+            Locale = options.Locale,
+            Permissions = options.Permissions,
+            ExtraHTTPHeaders = options.ExtraHTTPHeaders,
+            Offline = options.Offline,
+            HttpCredentials = options.HttpCredentials,
+            ColorScheme = options.ColorScheme,
+            ReducedMotion = options.ReducedMotion,
+            ForcedColors = options.ForcedColors,
+            RecordHarPath = options.RecordHarPath,
+            RecordHarContent = options.RecordHarContent,
+            RecordHarMode = options.RecordHarMode,
+            RecordHarOmitContent = options.RecordHarOmitContent,
+            RecordHarUrlFilter = options.RecordHarUrlFilter,
+            RecordHarUrlFilterString = options.RecordHarUrlFilterString,
+            RecordHarUrlFilterRegex = options.RecordHarUrlFilterRegex,
+            RecordVideoDir = options.RecordVideoDir,
+            RecordVideoSize = options.RecordVideoSize,
+            Proxy = options.Proxy,
+            StorageState = options.StorageState,
+            StorageStatePath = options.StorageStatePath,
+            ServiceWorkers = options.ServiceWorkers,
+            BaseURL = options.BaseURL,
+            StrictSelectors = options.StrictSelectors
+        };
+
+        await TriggerEventAndWait(x => x.BeforeContext(contextOptions, _browser));
+        var browserContext = await _browser.NewContextAsync(contextOptions).ConfigureAwait(false);
+        await TriggerEventAndWait(x => x.OnContextCreated(browserContext, contextOptions));
+
+        browserContext.Close += async (_, context) => await TriggerEventAndWait(x => x.OnDisconnected(context.Browser));
+
+        var page = await browserContext.NewPageAsync();
+        await TriggerEventAndWait(x => x.OnPageCreated(page));
+        page.Request += async (_, request) => await TriggerEventAndWait(x => x.OnRequest(page, request));
+
+        page.Close += async (_, page1) => await TriggerEventAndWait(x => x.OnPageClose(page1));
+
+        return page;
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        return _browser.DisposeAsync();
+    }
+
+    public Task CloseAsync()
+    {
+        return _browser.CloseAsync();
+    }
+
+    public Task<ICDPSession> NewBrowserCDPSessionAsync()
+    {
+        return _browser.NewBrowserCDPSessionAsync();
+    }
+
+    public Task<IBrowserContext> NewContextAsync(BrowserNewContextOptions? options = null)
+    {
+        return _browser.NewContextAsync();
+    }
+
+    public IBrowserType BrowserType => _browser.BrowserType;
+    public IReadOnlyList<IBrowserContext> Contexts => _browser.Contexts;
+    public bool IsConnected => _browser.IsConnected;
+    public string Version => _browser.Version;
+
+    event EventHandler<IBrowser>? IBrowser.Disconnected
+    {
+        add => _browser.Disconnected += value;
+        remove => _browser.Disconnected -= value;
+    }
+
+    public async void Dispose()
+    {
+        await _browser.DisposeAsync();
+        _playwright?.Dispose();
     }
 
     private void ResolveDependencies(PlaywrightExtraPlugin extraPlugin)

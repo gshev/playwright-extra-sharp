@@ -6,6 +6,5 @@ public class OutDimensions : PlaywrightExtraPlugin
 {
     public override string Name => "stealth-dimensions";
 
-    public override Func<IPage, Task> OnPageCreated =>
-        async page => { await EvaluateScript(page, "Outdimensions.js"); };
+    public override Func<IPage, Task> OnPageCreated => page => EvaluateScript(page, "Outdimensions.js");
 }

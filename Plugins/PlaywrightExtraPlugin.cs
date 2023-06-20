@@ -19,6 +19,7 @@ public abstract class PlaywrightExtraPlugin
     public virtual Func<IBrowser, Task> OnBrowser { get; set; } = _ => Task.CompletedTask;
     public virtual Func<IPage, Task> OnPageCreated { get; set; } = _ => Task.CompletedTask;
     public virtual Func<IPage, Task> OnPageClose { get; set; } = _ => Task.CompletedTask;
+    public virtual Func<IPage, IRequest, Task> OnRequest { get; set; } = (_, _) => Task.CompletedTask;
     public virtual Func<IBrowser?, Task> OnDisconnected { get; set; } = _ => Task.CompletedTask;
 
     public virtual Func<BrowserNewContextOptions, IBrowser?, Task> BeforeContext { get; set; } =

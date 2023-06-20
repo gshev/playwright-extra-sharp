@@ -6,5 +6,5 @@ public class Codec : PlaywrightExtraPlugin
 {
     public override string Name => "stealth-codec";
 
-    public override Func<IPage, Task> OnPageCreated => async page => { await EvaluateScript(page, "Codec.js"); };
+    public override Func<IPage, Task> OnPageCreated => page => EvaluateScript(page, "Codec.js");
 }

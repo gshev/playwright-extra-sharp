@@ -8,53 +8,6 @@ public class UserAgent : PlaywrightExtraPlugin
 {
     public override string Name => "stealth-userAgent";
 
-    // public override Func<IBrowserContext, BrowserNewContextOptions, Task> OnContextCreated =>
-    //     async (context, options) =>
-    //     {
-    //         var page = context.Pages.FirstOrDefault();
-    //         
-    //         if(page == null)
-    //             return;
-    //
-    //         var ua = await page.EvaluateAsync<string>("() => navigator.userAgent").ConfigureAwait(false);
-    //         ua = ua.Replace("HeadlessChrome/", "Chrome/");
-    //         var uaVersion = ua.Contains("Chrome/")
-    //             ? Regex.Match(ua, @"Chrome\/([\d|.]+)").Groups[1].Value
-    //             : Regex.Match(ua, @"\/([\d|.]+)").Groups is { } groups
-    //                 ? groups[groups.Count - 1].Value
-    //                 : "";
-    //
-    //         var platform = GetPlatform(ua);
-    //         var brand = GetBrands(uaVersion);
-    //
-    //         var isMobile = GetIsMobile(ua);
-    //         var platformVersion = GetPlatformVersion(ua);
-    //         var platformArch = GetPlatformArch(isMobile);
-    //         var platformModel = GetPlatformModel(isMobile, ua);
-    //
-    //         var overrideObject = new Dictionary<string, object>()
-    //         {
-    //             { "userAgent", ua },
-    //             { "platform", platform },
-    //             { "acceptLanguage", "en-US, en" },
-    //             {
-    //                 "userAgentMetadata", new Dictionary<string, object>()
-    //                 {
-    //                     { "brands", brand.ToArray() },
-    //                     { "fullVersion", uaVersion },
-    //                     { "platform", platform },
-    //                     { "platformVersion", platformVersion },
-    //                     { "architecture", platformArch },
-    //                     { "model", platformModel },
-    //                     { "mobile", isMobile }
-    //                 }
-    //             }
-    //         };
-    //
-    //         var session = await context.NewCDPSessionAsync(page).ConfigureAwait(false);
-    //         await session.SendAsync("Network.setUserAgentOverride", overrideObject).ConfigureAwait(false);
-    //     };
-
     public override Func<IPage, Task> OnPageCreated => async page =>
     {
         var ua = await page.EvaluateAsync<string>("() => navigator.userAgent").ConfigureAwait(false);

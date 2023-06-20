@@ -16,51 +16,51 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.Playwright" Version="1.35.0" />
-        <PackageReference Include="RestSharp" Version="110.2.0" />
+        <PackageReference Include="Microsoft.Playwright" Version="1.35.0"/>
+        <PackageReference Include="RestSharp" Version="110.2.0"/>
     </ItemGroup>
 
     <ItemGroup>
-        <None Remove="Plugins\Scripts\ChromeApp.js" />
-        <None Remove="Plugins\Scripts\Codec.js" />
-        <None Remove="Plugins\Scripts\Frame.js" />
-        <None Remove="Plugins\Scripts\HardwareConcurrency.js" />
-        <None Remove="Plugins\Scripts\Language.js" />
-        <None Remove="Plugins\Scripts\LoadTimes.js" />
-        <None Remove="Plugins\Scripts\Outdimensions.js" />
-        <None Remove="Plugins\Scripts\Permissions.js" />
-        <None Remove="Plugins\Scripts\Plugin.js" />
-        <None Remove="Plugins\Scripts\Runtime.js" />
-        <None Remove="Plugins\Scripts\SCI.js" />
-        <None Remove="Plugins\Scripts\Stacktrace.js" />
-        <None Remove="Plugins\Scripts\Utils.js" />
-        <None Remove="Plugins\Scripts\Vendor.js" />
-        <None Remove="Plugins\Scripts\WebDriver.js" />
-        <None Remove="Plugins\Scripts\WebGL.js" />
-        <None Remove="Plugins\Recaptcha\Scripts\EnterRecaptchaCallBackScript.js" />
+        <None Remove="Plugins\Scripts\ChromeApp.js"/>
+        <None Remove="Plugins\Scripts\Codec.js"/>
+        <None Remove="Plugins\Scripts\Frame.js"/>
+        <None Remove="Plugins\Scripts\HardwareConcurrency.js"/>
+        <None Remove="Plugins\Scripts\Language.js"/>
+        <None Remove="Plugins\Scripts\LoadTimes.js"/>
+        <None Remove="Plugins\Scripts\Outdimensions.js"/>
+        <None Remove="Plugins\Scripts\Permissions.js"/>
+        <None Remove="Plugins\Scripts\Plugin.js"/>
+        <None Remove="Plugins\Scripts\Runtime.js"/>
+        <None Remove="Plugins\Scripts\SCI.js"/>
+        <None Remove="Plugins\Scripts\Stacktrace.js"/>
+        <None Remove="Plugins\Scripts\Utils.js"/>
+        <None Remove="Plugins\Scripts\Vendor.js"/>
+        <None Remove="Plugins\Scripts\WebDriver.js"/>
+        <None Remove="Plugins\Scripts\WebGL.js"/>
+        <None Remove="Plugins\Recaptcha\Scripts\EnterRecaptchaCallBackScript.js"/>
     </ItemGroup>
 
     <ItemGroup>
-        <EmbeddedResource Include="Plugins\Recaptcha\Scripts\EnterRecaptchaCallBackScript.js" />
-        <EmbeddedResource Include="Plugins\Scripts\ChromeApp.js" />
-        <EmbeddedResource Include="Plugins\Scripts\Codec.js" />
-        <EmbeddedResource Include="Plugins\Scripts\ContentWindow.js" />
-        <EmbeddedResource Include="Plugins\Scripts\HardwareConcurrency.js" />
-        <EmbeddedResource Include="Plugins\Scripts\Language.js" />
-        <EmbeddedResource Include="Plugins\Scripts\LoadTimes.js" />
-        <EmbeddedResource Include="Plugins\Scripts\Outdimensions.js" />
-        <EmbeddedResource Include="Plugins\Scripts\Permissions.js" />
-        <EmbeddedResource Include="Plugins\Scripts\Plugin.js" />
-        <EmbeddedResource Include="Plugins\Scripts\Runtime.js" />
-        <EmbeddedResource Include="Plugins\Scripts\SCI.js" />
-        <EmbeddedResource Include="Plugins\Scripts\Stacktrace.js" />
-        <EmbeddedResource Include="Plugins\Scripts\Utils.js" />
-        <EmbeddedResource Include="Plugins\Scripts\Vendor.js" />
-        <EmbeddedResource Include="Plugins\Scripts\WebDriver.js" />
-        <EmbeddedResource Include="Plugins\Scripts\WebGL.js" />
+        <EmbeddedResource Include="Plugins\Recaptcha\Scripts\EnterRecaptchaCallBackScript.js"/>
+        <EmbeddedResource Include="Plugins\Scripts\ChromeApp.js"/>
+        <EmbeddedResource Include="Plugins\Scripts\Codec.js"/>
+        <EmbeddedResource Include="Plugins\Scripts\ContentWindow.js"/>
+        <EmbeddedResource Include="Plugins\Scripts\HardwareConcurrency.js"/>
+        <EmbeddedResource Include="Plugins\Scripts\Language.js"/>
+        <EmbeddedResource Include="Plugins\Scripts\LoadTimes.js"/>
+        <EmbeddedResource Include="Plugins\Scripts\Outdimensions.js"/>
+        <EmbeddedResource Include="Plugins\Scripts\Permissions.js"/>
+        <EmbeddedResource Include="Plugins\Scripts\Plugin.js"/>
+        <EmbeddedResource Include="Plugins\Scripts\Runtime.js"/>
+        <EmbeddedResource Include="Plugins\Scripts\SCI.js"/>
+        <EmbeddedResource Include="Plugins\Scripts\Stacktrace.js"/>
+        <EmbeddedResource Include="Plugins\Scripts\Utils.js"/>
+        <EmbeddedResource Include="Plugins\Scripts\Vendor.js"/>
+        <EmbeddedResource Include="Plugins\Scripts\WebDriver.js"/>
+        <EmbeddedResource Include="Plugins\Scripts\WebGL.js"/>
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="README.md" Pack="true" PackagePath="\" />
+        <None Include="README.md" Pack="true" PackagePath="\"/>
     </ItemGroup>
 </Project>

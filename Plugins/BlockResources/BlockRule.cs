@@ -16,16 +16,13 @@ public class BlockRule
         _resourceType = resourceType;
     }
 
-    public bool IsRequestBlocked(IPage fromPage, IRequest request)
+    public bool IsRequestBlocked(IPage? fromPage, IRequest request)
     {
-        if (!IsResourcesBlocked(request.ResourceType))
-            return false;
-
-        return IsSiteBlocked(request.Url) || IsPageBlocked(fromPage);
+        return IsResourcesBlocked(request.ResourceType) || IsSiteBlocked(request.Url) || IsPageBlocked(fromPage);
     }
 
 
-    private bool IsPageBlocked(IPage page)
+    private bool IsPageBlocked(IPage? page)
     {
         return _page != null && page.Equals(_page);
     }

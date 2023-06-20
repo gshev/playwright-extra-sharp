@@ -6,5 +6,5 @@ public class StackTrace : PlaywrightExtraPlugin
 {
     public override string Name => "stealth-stackTrace";
 
-    public override Func<IPage, Task> OnPageCreated => async page => { await EvaluateScript(page, "Stacktrace.js"); };
+    public override Func<IPage, Task> OnPageCreated => page => EvaluateScript(page, "Stacktrace.js");
 }

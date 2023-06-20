@@ -13,10 +13,8 @@ public class WebGl : PlaywrightExtraPlugin
 
     public override string Name => "stealth-webGl";
 
-    public override Func<IPage, Task> OnPageCreated => async page =>
-    {
-        await EvaluateScript(page, "WebGL.js", _options.Vendor, _options.Renderer);
-    };
+    public override Func<IPage, Task> OnPageCreated =>
+        page => EvaluateScript(page, "WebGL.js", _options.Vendor, _options.Renderer);
 }
 
 public class StealthWebGLOptions : IPlaywrightExtraPluginOptions
