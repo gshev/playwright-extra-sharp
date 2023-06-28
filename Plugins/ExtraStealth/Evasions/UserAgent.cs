@@ -10,7 +10,7 @@ public class UserAgent : PlaywrightExtraPlugin
 
     public override Func<IPage, Task> OnPageCreated => async page =>
     {
-        var ua = await page.EvaluateAsync<string>("() => navigator.userAgent").ConfigureAwait(false);
+        var ua = await page.EvaluateAsync<string>("() => navigator.userAgent");
         ua = ua.Replace("HeadlessChrome/", "Chrome/");
         var uaVersion = ua.Contains("Chrome/")
             ? Regex.Match(ua, @"Chrome\/([\d|.]+)").Groups[1].Value
@@ -45,8 +45,8 @@ public class UserAgent : PlaywrightExtraPlugin
             }
         };
 
-        var session = await page.Context.NewCDPSessionAsync(page).ConfigureAwait(false);
-        await session.SendAsync("Network.setUserAgentOverride", overrideObject).ConfigureAwait(false);
+        var session = await page.Context.NewCDPSessionAsync(page);
+        await session.SendAsync("Network.setUserAgentOverride", overrideObject);
     };
 
     private static string GetPlatform(string ua)

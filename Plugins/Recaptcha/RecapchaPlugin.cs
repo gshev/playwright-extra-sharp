@@ -14,10 +14,13 @@ public class RecaptchaExtraPlugin : PlaywrightExtraPlugin
 
     public override string Name => "recaptcha";
 
-    public override Func<BrowserNewContextOptions, IBrowser?, Task> BeforeContext =>
-        (options, browser) =>
+    public override Func<BrowserNewContextOptions?, BrowserTypeLaunchPersistentContextOptions?, Task> BeforeContext =>
+        (options1, options2) =>
         {
-            options.BypassCSP = true;
+            if(options1 != null)
+                options1.BypassCSP = true;
+            if(options2 != null)
+                options2.BypassCSP = true;
             return Task.CompletedTask;
         };
 

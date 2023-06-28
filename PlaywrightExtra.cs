@@ -8,15 +8,21 @@ namespace PlaywrightExtraSharp;
 public class PlaywrightExtra : IBrowser, IDisposable
 {
     private readonly BrowserTypeEnum _browserTypeEnum;
-    private IBrowser _browser = null!;
+    private IBrowser? _browser;
+    private IBrowserContext? _browserContext;
     private IPlaywright? _playwright;
     private List<PlaywrightExtraPlugin> _plugins = new();
+    private bool _persistContext;
+    private bool _persistentLaunch;
+    private string? _userDataDir;
+    private BrowserNewContextOptions? _contextOptions;
+    private BrowserTypeLaunchPersistentContextOptions? _persistentContextOptions;
 
     public PlaywrightExtra(BrowserTypeEnum browserTypeEnum)
     {
         _browserTypeEnum = browserTypeEnum;
 
-        Use(new DisposeContext());
+        //Use(new DisposeContext());
     }
 
     public PlaywrightExtra Use(PlaywrightExtraPlugin extraPlugin)
@@ -36,19 +42,71 @@ public class PlaywrightExtra : IBrowser, IDisposable
         return this;
     }
 
-    public async Task<PlaywrightExtra> LaunchAsync(BrowserTypeLaunchOptions? options = null)
+    public async Task<PlaywrightExtra> LaunchPersistentAsync(BrowserTypeLaunchPersistentContextOptions? options = null, bool persistContext = true, string? userDataDir = null)
     {
-        await TriggerEventAndWait(x => x.BeforeLaunch(options));
+        _persistContext = persistContext;
+        _persistentLaunch = true;
+        _userDataDir = userDataDir;
+        _persistentContextOptions = options ?? new BrowserTypeLaunchPersistentContextOptions();
+        
+        _playwright = await Playwright.CreateAsync();
+        
+        await TriggerEventAndWait(x => x.BeforeLaunch(null, options));
 
-        _playwright = await Playwright.CreateAsync().ConfigureAwait(false);
-        _browser = await _playwright[_browserTypeEnum.GetBrowserName()].LaunchAsync(options).ConfigureAwait(false);
+        if (_persistContext)
+        {
+            await TriggerEventAndWait(x => x.BeforeContext(null, options));
+            _browserContext = await _playwright[_browserTypeEnum.GetBrowserName()]
+                .LaunchPersistentContextAsync(userDataDir ?? "", options);
+            await TriggerEventAndWait(x => x.OnContextCreated(_browserContext, null, options));
 
-        await TriggerEventAndWait(x => x.OnBrowser(_browser));
+            await TriggerEventAndWait(x => x.OnBrowser(null, _browserContext));
+
+            _browserContext.Close += async (_, targetBrowserContext) =>
+                await TriggerEventAndWait(x => x.OnDisconnected(null, targetBrowserContext));
+
+            await TriggerEventAndWait(x => x.AfterLaunch(null, _browserContext));
+        }
+
+        OrderPlugins();
+        CheckPluginRequirements(new BrowserStartContext
+        {
+            StartType = StartType.Launch,
+            IsHeadless = options?.Headless ?? false
+        });
+
+        return this;
+    }
+    
+    public async Task<PlaywrightExtra> LaunchAsync(BrowserTypeLaunchOptions? options = null, bool persistContext = true, BrowserNewContextOptions? contextOptions = null)
+    {
+        _persistContext = persistContext;
+        _persistentLaunch = false;
+        _contextOptions = contextOptions ?? new BrowserNewContextOptions();
+
+        await TriggerEventAndWait(x => x.BeforeLaunch(options, null));
+
+        _playwright = await Playwright.CreateAsync();
+        _browser = await _playwright[_browserTypeEnum.GetBrowserName()].LaunchAsync(options);
+        await TriggerEventAndWait(x => x.OnBrowser(_browser, null));
 
         _browser.Disconnected += async (_, targetBrowser) =>
-            await TriggerEventAndWait(x => x.OnDisconnected(targetBrowser));
+            await TriggerEventAndWait(x => x.OnDisconnected(_browser, null));
 
-        await TriggerEventAndWait(x => x.AfterLaunch(_browser));
+        if (_persistContext)
+        {
+            await TriggerEventAndWait(x => x.BeforeContext(contextOptions, null));
+            _browserContext = await _browser.NewContextAsync(contextOptions);
+            await TriggerEventAndWait(x => x.OnContextCreated(_browserContext, contextOptions, null));
+
+            _browserContext.Close += async (_, context) =>
+                await TriggerEventAndWait(x => x.OnDisconnected(null, context));
+
+            var blankPage = await _browserContext.NewPageAsync();
+            await blankPage.GotoAsync("about:blank");
+        }
+
+        await TriggerEventAndWait(x => x.AfterLaunch(_browser, null));
 
         OrderPlugins();
         CheckPluginRequirements(new BrowserStartContext
@@ -62,19 +120,22 @@ public class PlaywrightExtra : IBrowser, IDisposable
 
     public async Task<PlaywrightExtra> ConnectAsync(string wsEndpoint, BrowserTypeConnectOptions? options = null)
     {
+        _persistContext = true;
+        _persistentLaunch = false;
+        
         await TriggerEventAndWait(x => x.BeforeConnect(options));
 
-        _playwright = await Playwright.CreateAsync().ConfigureAwait(false);
-        _browser = await _playwright[_browserTypeEnum.GetBrowserName()].ConnectAsync(wsEndpoint, options)
-            .ConfigureAwait(false);
+        _playwright = await Playwright.CreateAsync();
+        _browser = (await _playwright[_browserTypeEnum.GetBrowserName()].ConnectAsync(wsEndpoint, options));
+        _browserContext = _browser.Contexts.First();
 
         await TriggerEventAndWait(x => x.AfterConnect(_browser));
-        await TriggerEventAndWait(x => x.OnBrowser(_browser));
+        await TriggerEventAndWait(x => x.OnBrowser(_browser, null));
 
         _browser.Disconnected += async (_, targetBrowser) =>
-            await TriggerEventAndWait(x => x.OnDisconnected(targetBrowser));
+            await TriggerEventAndWait(x => x.OnDisconnected(targetBrowser, null));
 
-        await TriggerEventAndWait(x => x.AfterLaunch(_browser));
+        await TriggerEventAndWait(x => x.AfterLaunch(_browser, null));
 
         OrderPlugins();
         CheckPluginRequirements(new BrowserStartContext
@@ -85,60 +146,64 @@ public class PlaywrightExtra : IBrowser, IDisposable
         return this;
     }
 
-    public async Task<IPage> NewPageAsync(BrowserNewPageOptions? options = default)
+    public Task<IPage> NewPageAsync(BrowserNewPageOptions? options = default)
+        => NewPageAsync(options, null);
+    
+    public async Task<IPage> NewPageAsync(BrowserNewPageOptions? options = default, string? userDataDir = null)
     {
         options ??= new BrowserNewPageOptions();
 
-        var contextOptions = new BrowserNewContextOptions
+        IPage page = null!;
+        
+        if (_persistContext)
         {
-            AcceptDownloads = options.AcceptDownloads,
-            IgnoreHTTPSErrors = options.IgnoreHTTPSErrors,
-            BypassCSP = options.BypassCSP,
-            ViewportSize = options.ViewportSize,
-            ScreenSize = options.ScreenSize,
-            UserAgent = options.UserAgent,
-            DeviceScaleFactor = options.DeviceScaleFactor,
-            IsMobile = options.IsMobile,
-            HasTouch = options.HasTouch,
-            JavaScriptEnabled = options.JavaScriptEnabled,
-            TimezoneId = options.TimezoneId,
-            Geolocation = options.Geolocation,
-            Locale = options.Locale,
-            Permissions = options.Permissions,
-            ExtraHTTPHeaders = options.ExtraHTTPHeaders,
-            Offline = options.Offline,
-            HttpCredentials = options.HttpCredentials,
-            ColorScheme = options.ColorScheme,
-            ReducedMotion = options.ReducedMotion,
-            ForcedColors = options.ForcedColors,
-            RecordHarPath = options.RecordHarPath,
-            RecordHarContent = options.RecordHarContent,
-            RecordHarMode = options.RecordHarMode,
-            RecordHarOmitContent = options.RecordHarOmitContent,
-            RecordHarUrlFilter = options.RecordHarUrlFilter,
-            RecordHarUrlFilterString = options.RecordHarUrlFilterString,
-            RecordHarUrlFilterRegex = options.RecordHarUrlFilterRegex,
-            RecordVideoDir = options.RecordVideoDir,
-            RecordVideoSize = options.RecordVideoSize,
-            Proxy = options.Proxy,
-            StorageState = options.StorageState,
-            StorageStatePath = options.StorageStatePath,
-            ServiceWorkers = options.ServiceWorkers,
-            BaseURL = options.BaseURL,
-            StrictSelectors = options.StrictSelectors
-        };
+            page = await _browserContext!.NewPageAsync();
+            page.Close += async (_, page1) => await TriggerEventAndWait(x => x.OnPageClose(page1));
+        }
+        else
+        {
+            if (_persistentLaunch)
+            {
+                var persistentContextOptions = options.ToPersistentContextOptions(_persistentContextOptions);
+            
+                await TriggerEventAndWait(x => x.BeforeContext(null, persistentContextOptions));
+                var browserContext = await _playwright![_browserTypeEnum.GetBrowserName()]
+                    .LaunchPersistentContextAsync(_userDataDir ?? userDataDir ?? "", persistentContextOptions);
+                await TriggerEventAndWait(x => x.OnContextCreated(browserContext, null, persistentContextOptions));
 
-        await TriggerEventAndWait(x => x.BeforeContext(contextOptions, _browser));
-        var browserContext = await _browser.NewContextAsync(contextOptions).ConfigureAwait(false);
-        await TriggerEventAndWait(x => x.OnContextCreated(browserContext, contextOptions));
+                await TriggerEventAndWait(x => x.OnBrowser(null, browserContext));
 
-        browserContext.Close += async (_, context) => await TriggerEventAndWait(x => x.OnDisconnected(context.Browser));
+                browserContext.Close += async (_, targetBrowserContext) =>
+                    await TriggerEventAndWait(x => x.OnDisconnected(null, targetBrowserContext));
 
-        var page = await browserContext.NewPageAsync();
+                await TriggerEventAndWait(x => x.AfterLaunch(null, browserContext));
+            
+                page = await browserContext.NewPageAsync();
+                page.Close += async (_, page1) =>
+                {
+                    await TriggerEventAndWait(x => x.OnPageClose(page1));
+                    await page1.Context.CloseAsync();
+                };
+            }
+            else
+            {
+                var contextOptions = options.ToContextOptions(_contextOptions);
+
+                await TriggerEventAndWait(x => x.BeforeContext(contextOptions, null));
+                var browserContext = await _browser.NewContextAsync(contextOptions);
+                await TriggerEventAndWait(x => x.OnContextCreated(browserContext, contextOptions, null));
+
+                browserContext.Close += async (_, context) =>
+                    await TriggerEventAndWait(x => x.OnDisconnected(null, context));
+
+                page = await browserContext.NewPageAsync();
+                page.Close += async (_, page1) => await TriggerEventAndWait(x => x.OnPageClose(page1));
+            }
+        }
+
         await TriggerEventAndWait(x => x.OnPageCreated(page));
-        page.Request += async (_, request) => await TriggerEventAndWait(x => x.OnRequest(page, request));
 
-        page.Close += async (_, page1) => await TriggerEventAndWait(x => x.OnPageClose(page1));
+        page.Request += async (_, request) => await TriggerEventAndWait(x => x.OnRequest(page, request));
 
         return page;
     }

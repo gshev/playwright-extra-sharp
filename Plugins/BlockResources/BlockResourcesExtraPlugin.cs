@@ -6,10 +6,12 @@ public class BlockResourcesExtraPlugin : PlaywrightExtraPlugin
 {
     private readonly List<BlockRule> _blockResources = new();
 
-    public BlockResourcesExtraPlugin(IEnumerable<string>? blockResources = null)
+    public BlockResourcesExtraPlugin(IEnumerable<string>? blockResources = null, string? blockPattern = null)
     {
         if (blockResources != null)
             _blockResources.Add(new BlockRule(resourceType: blockResources));
+        if (blockPattern != null)
+            _blockResources.Add(new BlockRule(sitePattern: blockPattern));
     }
 
     public override string Name => "block-resources";
@@ -32,11 +34,16 @@ public class BlockResourcesExtraPlugin : PlaywrightExtraPlugin
             return tcs.Task;
         };
 
-    public override Func<BrowserTypeLaunchOptions?, Task> BeforeLaunch => options =>
+    public override Func<BrowserTypeLaunchOptions?, BrowserTypeLaunchPersistentContextOptions?, Task> BeforeLaunch => (options1, options2) =>
     {
-        if (options != null)
-            options.Args = options.Args?.Append("--site-per-process").Append("--disable-features=IsolateOrigins")
+        if (options1 != null)
+            options1.Args = options1.Args?.Append("--site-per-process").Append("--disable-features=IsolateOrigins")
                 .ToArray();
+        
+        if (options2 != null)
+            options2.Args = options2.Args?.Append("--site-per-process").Append("--disable-features=IsolateOrigins")
+                .ToArray();
+        
         return Task.CompletedTask;
     };
 
