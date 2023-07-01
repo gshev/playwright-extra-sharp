@@ -147,9 +147,17 @@ public class PlaywrightExtra : IBrowser, IDisposable
     }
 
     public Task<IPage> NewPageAsync(BrowserNewPageOptions? options = default)
-        => NewPageAsync(options, null);
+        => NewPageAsync(null, options);
     
-    public async Task<IPage> NewPageAsync(BrowserNewPageOptions? options = default, string? userDataDir = null)
+    /// <summary>
+    /// <para>
+    /// Creates a new page in a new browser context. Closing this page will close the context
+    /// as well.
+    /// </para>
+    /// </summary>
+    /// /// <param name="userDataDir">User data dir to store cache</param>
+    /// <param name="options">Call options</param>
+    public async Task<IPage> NewPageAsync(string? userDataDir = null, BrowserNewPageOptions? options = default)
     {
         options ??= new BrowserNewPageOptions();
 

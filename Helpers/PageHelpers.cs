@@ -5,14 +5,29 @@ namespace PlaywrightExtraSharp.Helpers;
 
 public static class PageHelpers
 {
-    public static async Task<IResponse?> GotoAndWaitForIdleAsync(this IPage page, string url, PageGotoOptions? options = null, TimeSpan? idleTime = null)
+    /// <summary>
+    /// Requests url and waits before network is idle or number of requests started equals finished
+    /// </summary>
+    /// <param name="page">Page from Playwright</param>
+    /// <param name="url">Url to request</param>
+    /// <param name="options">Page goto options</param>
+    /// <param name="idleTime">Network idle time before request considered finished</param>
+    /// <param name="timeBeforeScriptsActivate">Some sites load only one script and after setTimeout loads everything else. This time between page request completed and before any new requests will spawn will be awaited</param>
+    /// <returns></returns>
+    public static async Task<IResponse?> GotoAndWaitForIdleAsync(
+        this IPage page,
+        string url,
+        PageGotoOptions? options = null,
+        TimeSpan? idleTime = null,
+        TimeSpan? timeBeforeScriptsActivate = null)
     {
         idleTime ??= TimeSpan.FromMilliseconds(500);
-        
-        //var requestsStarted = 0;
-        //var requestsFinished = 0;
+        timeBeforeScriptsActivate ??= TimeSpan.FromMilliseconds(500);
 
-        //var autoResetEvent = new AutoResetEvent(false);
+        var requestsStarted = 0;
+        var requestsFinished = 0;
+
+        var autoResetEvent = new AutoResetEvent(false);
 
         page.Request += PageOnRequestStarted;
         page.RequestFinished += PageOnRequestFinished;
@@ -25,43 +40,41 @@ public static class PageHelpers
             try
             {
                 response = await page.GotoAsync(url, options);
+                await page.WaitForTimeoutAsync((float)timeBeforeScriptsActivate.Value.TotalMilliseconds);
                 break;
             }
             catch (PlaywrightException pwe)
             {
-                
-            }    
+            }
         }
 
         var lastRequestFinishedAt = DateTime.UtcNow;
 
-        while (DateTime.UtcNow - lastRequestFinishedAt < idleTime)
+        while (true)
         {
-            await Task.Delay(10);
-            //autoResetEvent.WaitOne(10);
+            autoResetEvent.WaitOne(100);
 
-            // if (requestsStarted == requestsFinished || DateTime.UtcNow - lastRequestFinishedAt >= timeout)
-            //     break;
+            if (requestsStarted == requestsFinished || DateTime.UtcNow - lastRequestFinishedAt >= idleTime)
+                break;
         }
-        
+
         page.Request -= PageOnRequestStarted;
         page.RequestFinished -= PageOnRequestFinished;
         page.RequestFailed -= PageOnRequestFinished;
 
         return response;
-        
+
         void PageOnRequestStarted(object sender, IRequest request)
         {
-            //requestsStarted++;
+            requestsStarted++;
             lastRequestFinishedAt = DateTime.UtcNow;
-            //autoResetEvent.Reset();
         }
 
         void PageOnRequestFinished(object sender, IRequest request)
         {
-            //requestsFinished++;
+            requestsFinished++;
             lastRequestFinishedAt = DateTime.UtcNow;
-            //autoResetEvent.Set();
+            autoResetEvent.Set();
         }
     }
 }
