@@ -145,6 +145,45 @@ public class PlaywrightExtra : IBrowser, IDisposable
 
         return this;
     }
+    
+    public async Task<PlaywrightExtra> ConnectOverCDPAsync(string endpointURL, BrowserTypeConnectOverCDPOptions? options = null)
+    {
+        if (_browserTypeEnum != BrowserTypeEnum.Chromium)
+            throw new InvalidOperationException("ConnectOverCDPAsync is only supported for chromium browser");
+            
+        _persistContext = true;
+        _persistentLaunch = false;
+
+        await TriggerEventAndWait(x => x.BeforeConnect(
+            options != null
+                ? new BrowserTypeConnectOptions
+                {
+                    Headers = options.Headers,
+                    Timeout = options.Timeout,
+                    SlowMo = options.SlowMo
+                }
+                : null));
+
+        _playwright = await Playwright.CreateAsync();
+        _browser = (await _playwright[_browserTypeEnum.GetBrowserName()].ConnectOverCDPAsync(endpointURL, options));
+        _browserContext = _browser.Contexts.First();
+
+        await TriggerEventAndWait(x => x.AfterConnect(_browser));
+        await TriggerEventAndWait(x => x.OnBrowser(_browser, null));
+
+        _browser.Disconnected += async (_, targetBrowser) =>
+            await TriggerEventAndWait(x => x.OnDisconnected(targetBrowser, null));
+
+        await TriggerEventAndWait(x => x.AfterLaunch(_browser, null));
+
+        OrderPlugins();
+        CheckPluginRequirements(new BrowserStartContext
+        {
+            StartType = StartType.Connect
+        });
+
+        return this;
+    }
 
     public Task<IPage> NewPageAsync(BrowserNewPageOptions? options = default)
         => NewPageAsync(null, options);

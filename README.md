@@ -17,10 +17,10 @@ var playwrightExtra = new PlaywrightExtra(BrowserTypeEnum.Chromium);
 playwrightExtra.Install();
 
 // Use stealth plugin
-playwrightExtra.Use(new StealthPlugin());
+playwrightExtra.Use(new StealthExtraPlugin());
 
 // Launch the puppeteer browser with plugins
-await playwrightExtra.LaunchAsync(new LaunchOptions()
+await playwrightExtra.LaunchAsync(new ()
 {
     Headless = false
 });
@@ -34,10 +34,10 @@ Compact way
 
 ```csharp
 // Initialize, install, use plugin and launch
-var playwrightExtra = await new PlaywrightExtra(BrowserTypeEnum.Cromium)
+var playwrightExtra = await new PlaywrightExtra(BrowserTypeEnum.Chromium)
     .Install()
-    .Use(new StealthPlugin())
-    .LaunchAsync(new LaunchOptions()
+    .Use(new StealthExtraPlugin())
+    .LaunchAsync(new ()
     {
         Headless = false
     });
