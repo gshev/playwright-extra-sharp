@@ -13,7 +13,7 @@ public abstract class PlaywrightExtraPlugin
 
     public virtual Func<Task> OnPluginRegistered { get; set; } = () => Task.CompletedTask;
     public virtual Func<BrowserTypeLaunchOptions?, BrowserTypeLaunchPersistentContextOptions?, Task> BeforeLaunch { get; set; } = (_,_) => Task.CompletedTask;
-    public virtual Func<IBrowser?, IBrowserContext?, Task> AfterLaunch { get; set; } = (_,_) => Task.CompletedTask;
+    public virtual Func<IBrowser?, Task> AfterLaunch { get; set; } = _ => Task.CompletedTask;
     public virtual Func<BrowserTypeConnectOptions?, Task> BeforeConnect { get; set; } = _ => Task.CompletedTask;
     public virtual Func<IBrowser, Task> AfterConnect { get; set; } = _ => Task.CompletedTask;
     public virtual Func<IBrowser?, IBrowserContext?, Task> OnBrowser { get; set; } = (_,_) => Task.CompletedTask;

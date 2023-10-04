@@ -58,14 +58,17 @@ public class PlaywrightExtra : IBrowser, IDisposable
             await TriggerEventAndWait(x => x.BeforeContext(null, options));
             _browserContext = await _playwright[_browserTypeEnum.GetBrowserName()]
                 .LaunchPersistentContextAsync(userDataDir ?? "", options);
+            
             await TriggerEventAndWait(x => x.OnContextCreated(_browserContext, null, options));
+            
+            _browser = _browserContext.Browser;
 
-            await TriggerEventAndWait(x => x.OnBrowser(null, _browserContext));
+            await TriggerEventAndWait(x => x.OnBrowser(_browser, null));
 
             _browserContext.Close += async (_, targetBrowserContext) =>
                 await TriggerEventAndWait(x => x.OnDisconnected(null, targetBrowserContext));
 
-            await TriggerEventAndWait(x => x.AfterLaunch(null, _browserContext));
+            await TriggerEventAndWait(x => x.AfterLaunch(_browser));
         }
 
         OrderPlugins();
@@ -106,7 +109,7 @@ public class PlaywrightExtra : IBrowser, IDisposable
             await blankPage.GotoAsync("about:blank");
         }
 
-        await TriggerEventAndWait(x => x.AfterLaunch(_browser, null));
+        await TriggerEventAndWait(x => x.AfterLaunch(_browser));
 
         OrderPlugins();
         CheckPluginRequirements(new BrowserStartContext
@@ -135,7 +138,7 @@ public class PlaywrightExtra : IBrowser, IDisposable
         _browser.Disconnected += async (_, targetBrowser) =>
             await TriggerEventAndWait(x => x.OnDisconnected(targetBrowser, null));
 
-        await TriggerEventAndWait(x => x.AfterLaunch(_browser, null));
+        await TriggerEventAndWait(x => x.AfterLaunch(_browser));
 
         OrderPlugins();
         CheckPluginRequirements(new BrowserStartContext
@@ -174,7 +177,7 @@ public class PlaywrightExtra : IBrowser, IDisposable
         _browser.Disconnected += async (_, targetBrowser) =>
             await TriggerEventAndWait(x => x.OnDisconnected(targetBrowser, null));
 
-        await TriggerEventAndWait(x => x.AfterLaunch(_browser, null));
+        await TriggerEventAndWait(x => x.AfterLaunch(_browser));
 
         OrderPlugins();
         CheckPluginRequirements(new BrowserStartContext
@@ -223,7 +226,9 @@ public class PlaywrightExtra : IBrowser, IDisposable
                 browserContext.Close += async (_, targetBrowserContext) =>
                     await TriggerEventAndWait(x => x.OnDisconnected(null, targetBrowserContext));
 
-                await TriggerEventAndWait(x => x.AfterLaunch(null, browserContext));
+                _browser = browserContext.Browser;
+                
+                await TriggerEventAndWait(x => x.AfterLaunch(_browser));
             
                 page = await browserContext.NewPageAsync();
                 page.Close += async (_, page1) =>
@@ -257,12 +262,17 @@ public class PlaywrightExtra : IBrowser, IDisposable
 
     public ValueTask DisposeAsync()
     {
-        return _browser.DisposeAsync();
+        if(_browser is not null)
+            return _browser.DisposeAsync();
+        return _browserContext.DisposeAsync();
     }
 
-    public Task CloseAsync()
+    public async Task CloseAsync()
     {
-        return _browser.CloseAsync();
+        if(_browser is not null)
+            await _browser.CloseAsync();
+        if(_browserContext is not null)
+            await _browserContext.CloseAsync();
     }
 
     public Task<ICDPSession> NewBrowserCDPSessionAsync()
@@ -276,7 +286,7 @@ public class PlaywrightExtra : IBrowser, IDisposable
     }
 
     public IBrowserType BrowserType => _browser.BrowserType;
-    public IReadOnlyList<IBrowserContext> Contexts => _browser.Contexts;
+    public IReadOnlyList<IBrowserContext> Contexts => _browser?.Contexts ?? new []{ _browserContext! };
     public bool IsConnected => _browser.IsConnected;
     public string Version => _browser.Version;
 
